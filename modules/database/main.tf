@@ -27,20 +27,12 @@ resource "google_sql_database" "app_db" {
 resource "random_password" "db_user_password" {
   length           = 32
   special          = true
-  override_characters = "!@#%^*-_+=?"
 }
 
 resource "google_sql_user" "app_user" {
   name     = var.db_user
   instance = google_sql_database_instance.this.name
   password = random_password.db_user_password.result
-}
-
-resource "google_secret_manager_secret" "db_password" {
-  secret_id  = "${var.project_prefix}-${var.environment}-db-password"
-  replication {
-    automatic = true
-  }
 }
 
 resource "google_secret_manager_secret_version" "db_password_version" {
