@@ -1,12 +1,8 @@
-resource "google_compute_address" "db_static_ip" {
-  name   = "db-postgres-ip"
-  region = var.region
-}
-
 resource "google_compute_instance" "db_instance" {
   name         = "db-postgres-${var.project_id}"
   machine_type = "e2-micro"
   zone         = "${var.region}-b"
+  deletion_protection = true
 
   scheduling {
     preemptible        = true
@@ -21,9 +17,6 @@ resource "google_compute_instance" "db_instance" {
   network_interface {
     network    = var.vpc_network
     network_ip = var.db_private_ip
-    access_config {
-      nat_ip = google_compute_address.db_static_ip.address
-    }
   }
 
   metadata_startup_script = <<-EOT
@@ -31,4 +24,8 @@ resource "google_compute_instance" "db_instance" {
         sudo apt-get install -y docker.io
         sudo docker run --name postgres-db -e POSTGRES_PASSWORD=${var.db_password} -d -p 5432:5432 postgres
     EOT
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
