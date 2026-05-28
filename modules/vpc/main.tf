@@ -1,6 +1,5 @@
 resource "google_compute_network" "vpc_network" {
-  name                    = "swordmanager-vpc"
-  auto_create_subnetworks = true
+  name = var.vpc_network
 }
 
 resource "google_compute_firewall" "allow_postgres" {
