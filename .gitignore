@@ -1,6 +1,14 @@
-.terraform/
+# === IDE / OS ===
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# === Terraform ===
 *.tfstate
-*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
 crash.log
 crash.*.log
 override.tf
@@ -10,3 +18,22 @@ override.tf.json
 .terraformrc
 terraform.rc
 .gcloud/
+
+# === Environnements ===
+envs/*/.terraform/
+envs/*/*.tfstate
+envs/*/*.tfstate.backup
+envs/*/*.tfvars.json
+envs/*/*.tfvars
+
+# Docker
+Dockerfile
+
+# === Credentials / secrets ===
+*.pem
+*.key
+*account.json
+.secrets
+.env.*
+
+TerraformRole.txt
