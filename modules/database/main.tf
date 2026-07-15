@@ -6,8 +6,8 @@ resource "google_compute_instance" "db_instance" {
 
   scheduling {
     preemptible        = true
-    automatic_restart  = false
-    provisioning_model = "SPOT"
+    automatic_restart  = true
+    provisioning_model = "Standard"
   }
 
   boot_disk {
