@@ -5,6 +5,26 @@ resource "google_artifact_registry_repository" "repo" {
   format        = "DOCKER"
 }
 
+data "google_project" "current" {
+  project_id = var.project_id
+}
+
+locals {
+  cloud_run_service_account = "${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_secret_manager_secret_iam_member" "backend_db_password_access" {
+  secret_id = var.db_password_secret
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${local.cloud_run_service_account}"
+}
+
+resource "google_secret_manager_secret_iam_member" "backend_jwt_secret_access" {
+  secret_id = var.jwt_secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${local.cloud_run_service_account}"
+}
+
 resource "google_cloud_run_v2_service" "backend" {
   name     = "${var.project_id}-backend"
   location = var.region
@@ -26,12 +46,22 @@ resource "google_cloud_run_v2_service" "backend" {
         value = var.db_host_ip
       }
       env {
-        name  = "DB_PASS"
-        value = var.db_password
+        name = "DB_PASS"
+        value_source {
+          secret_key_ref {
+            secret  = var.db_password_secret
+            version = "latest"
+          }
+        }
       }
       env {
-        name  = "JWT_SECRET"
-        value = var.jwt_secret
+        name = "JWT_SECRET"
+        value_source {
+          secret_key_ref {
+            secret  = var.jwt_secret_id
+            version = "latest"
+          }
+        }
       }
       env {
         name  = "DB_USER"
@@ -53,6 +83,11 @@ resource "google_cloud_run_v2_service" "backend" {
       template[0].containers[0].image
     ]
   }
+
+  depends_on = [
+    google_secret_manager_secret_iam_member.backend_db_password_access,
+    google_secret_manager_secret_iam_member.backend_jwt_secret_access,
+  ]
 }
 
 resource "google_cloud_run_service_iam_member" "backend_public" {
